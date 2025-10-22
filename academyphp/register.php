@@ -11,7 +11,7 @@ session_start();
 // Параметры PDO: Аналогично login.php.
 try {
     $pdo = new PDO('mysql:host=db;dbname=photo_app', 'root', 'rootpassword', [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]);
 } catch (PDOException $e) {
     die("Ошибка подключения к базе данных: " . $e->getMessage());
@@ -37,13 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Параметры: trim($_POST['username']), trim($_POST['password']).
         $username = trim($_POST['username']);
         $password = trim($_POST['password']);
+        $email = trim($_POST['email']);
 
         // Валидация: Проверяет username на буквы/цифры и заполненность полей.
         // Параметры: preg_match('/^[a-zA-Z0-9]+$/', $username).
         if (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
             $error = "Имя пользователя должно содержать только буквы и цифры.";
-        } elseif (empty($username) || empty($password)) {
+        } elseif (empty($username) || empty($password) || empty($email)) {
             $error = "Заполните все поля.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = "Некорректный E-mail.";
         } else {
             // Проверка уникальности: Проверяет, существует ли username.
             // SQL: SELECT COUNT(*) FROM users WHERE username = ?
@@ -55,19 +58,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->fetchColumn() > 0) {
                 $error = "Имя пользователя уже занято.";
             } else {
-                // Хэширование пароля: Создает хэш с помощью bcrypt.
-                // Параметры: password_hash($password, PASSWORD_DEFAULT).
-                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-                // Добавление пользователя: Вставляет данные в таблицу users.
-                // SQL: INSERT INTO users (username, password) VALUES (?, ?)
-                // Назначение SQL: Добавляет нового пользователя с именем и хэшем пароля.
-                // Параметры SQL: ? - Плейсхолдеры для username и password.
-                // Параметры PDO: prepare(), execute([$username, $passwordHash]).
-                $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-                $stmt->execute([$username, $passwordHash]);
-                // Перенаправление: На страницу входа.
-                header("Location: login.php");
-                exit;
+                // Проверка уникальности e-mail
+                // SQL: SELECT COUNT(*) FROM users WHERE email = ?
+                // Назначение SQL: Проверяет, зарегистрирован ли уже указанный e-mail.
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+                $stmt->execute([$email]);
+                if ($stmt->fetchColumn() > 0) {
+                    $error = "E-mail уже зарегистрирован.";
+                } else {
+                    // Хэширование пароля: Создает хэш с помощью bcrypt.
+                    // Параметры: password_hash($password, PASSWORD_DEFAULT).
+                    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+                    // Добавление пользователя: Вставляет данные в таблицу users.
+                    // SQL: INSERT INTO users (username, password, email) VALUES (?, ?, ?)
+                    // Назначение SQL: Добавляет нового пользователя с именем, хэшем пароля и e-mail.
+                    // Параметры PDO: prepare(), execute([$username, $passwordHash, $email]).
+                    $stmt = $pdo->prepare("INSERT INTO users (username, password, email) VALUES (?, ?, ?)");
+                    $stmt->execute([$username, $passwordHash, $email]);
+
+                    // Перенаправление: На страницу входа.
+                    header("Location: login.php");
+                    exit;
+                }
             }
         }
     }
@@ -84,19 +97,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <div class="container">
     <h2>Регистрация</h2>
+
     <?php if (isset($error)): ?>
-        <!-- Ошибка: Выводит сообщение об ошибке. -->
-        <p class="error"><?php echo $error; ?></p>
+        <p class="error"><?php echo htmlspecialchars($error); ?></p>
     <?php endif; ?>
-    <!-- Форма регистрации: Отправляет username, password и csrf_token. -->
+
     <form method="POST">
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
         <label for="username">Имя пользователя</label>
         <input type="text" name="username" id="username" required>
+
+        <label for="email">E-mail</label>
+        <input type="email" name="email" id="email" required>
+
         <label for="password">Пароль</label>
         <input type="password" name="password" id="password" required>
+
         <button type="submit">Зарегистрироваться</button>
     </form>
+
     <p>Уже есть аккаунт? <a href="login.php">Войти</a></p>
 </div>
 </body>

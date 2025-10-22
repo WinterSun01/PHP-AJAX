@@ -13,11 +13,14 @@ session_start();
 //   Пользователь: 'root' - Имя пользователя MySQL.
 //   Пароль: 'rootpassword' - Пароль пользователя.
 //   Опции: PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION - Включает режим выброса исключений при ошибках.
-try {
-    $pdo = new PDO('mysql:host=db;dbname=photo_app', 'root', 'rootpassword', [
+try 
+{
+    $pdo = new PDO('mysql:host=db;dbname=photo_app', 'root', 'rootpassword', 
+    [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]);
-} catch (PDOException $e) {
+} catch (PDOException $e) 
+{
     // Обработка ошибки: Выводит сообщение об ошибке подключения и останавливает выполнение.
     // Параметры: $e->getMessage() - Текст ошибки PDO.
     die("Ошибка подключения к базе данных: " . $e->getMessage());
@@ -32,7 +35,8 @@ try {
     <!-- Встроенные стили: Дополняют styles.css для оформления главной страницы. -->
     <style>
         /* body: Основные стили страницы (шрифт, фон, отступы). */
-        body {
+        body 
+        {
             font-family: Arial, sans-serif;
             background-color: #EEE;
             margin: 0;
@@ -40,7 +44,8 @@ try {
             font-size: 18px;
         }
         /* container: Контейнер для контента с максимальной шириной и flex-расположением. */
-        .container {
+        .container 
+        {
             max-width: 25em;
             margin: 0 auto;
             display: flex;
@@ -48,16 +53,19 @@ try {
             gap: 0.5rem;
         }
         /* container__buttons: Контейнер для кнопок с flex и отступами. */
-        .container__buttons {
+        .container__buttons 
+        {
             display: flex;
             gap: 0.5rem;
         }
         /* h1: Заголовок для неавторизованных пользователей. */
-        h1 {
+        h1 
+        {
             font-size: 3rem;
         }
         /* a: Стили ссылок-кнопок (цвет, фон, центрирование). */
-        a {
+        a 
+        {
             flex: 1;
             color: #FFFFFF;
             background-color: blue;
@@ -69,14 +77,16 @@ try {
             text-decoration: none;
         }
         /* photo-gallery: Flex-контейнер для отображения изображений в галерее. */
-        .photo-gallery {
+        .photo-gallery 
+        {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
             margin-top: 1rem;
         }
         /* photo-gallery img: Стили для изображений (адаптивность, рамка). */
-        .photo-gallery img {
+        .photo-gallery img 
+        {
             max-width: 100%;
             height: auto;
             border: 1px solid #555;
