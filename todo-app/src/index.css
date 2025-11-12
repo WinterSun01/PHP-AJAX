@@ -1,0 +1,17 @@
+* 
+{
+  box-sizing: border-box;
+}
+
+body 
+{
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f9fafb;
+  color: #1f2937;
+}
+
+#app 
+{
+  min-height: 100vh;
+}
